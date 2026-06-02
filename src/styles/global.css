@@ -126,6 +126,15 @@ h4,
   align-items: flex-start;
 }
 
+/* Quando a gaveta estiver colapsada, escondemos o card de login por padrão (mobile e desktop) */
+.auth-dock--collapsed .auth-card {
+  display: none !important;
+}
+
+.auth-dock--expanded .auth-card {
+  display: block !important;
+}
+
 .auth-dock__tab {
   width: 78px;
   min-height: 100%;
