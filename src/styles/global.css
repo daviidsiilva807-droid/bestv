@@ -408,6 +408,34 @@ h4,
   padding: 24px;
 }
 
+/* Mobile sidebar open/overlay */
+.mobile-sidebar-toggle {
+  display: none;
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.sidebar--open-mobile {
+  position: fixed;
+  left: 12px;
+  top: 12px;
+  bottom: 12px;
+  width: calc(100% - 24px);
+  max-width: 460px;
+  z-index: 60;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.32);
+}
+
+.mobile-sidebar__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 50;
+}
+
 .sidebar__brand {
   display: flex;
   align-items: center;
@@ -1084,6 +1112,25 @@ h4,
 
   .billing-month__selected {
     text-align: left;
+  }
+
+  .mobile-sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    background: rgba(255,255,255,0.06);
+    color: var(--ink);
+    border: 1px solid rgba(25,25,25,0.06);
+  }
+
+  .sidebar--open-mobile .sidebar__brand > div,
+  .sidebar--open-mobile .sidebar__footer {
+    display: block;
+  }
+
+  .sidebar {
+    width: 78px;
   }
 }
 

@@ -42,6 +42,7 @@ export function DashboardShell({ onLogout }: DashboardShellProps) {
     return readSectionFromHash(window.location.hash);
   });
   const { metrics, username } = useAppStore();
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const currentSectionLabel = useMemo(
     () => sections.find((item) => item.id === section)?.label ?? 'Visão geral',
@@ -99,7 +100,7 @@ export function DashboardShell({ onLogout }: DashboardShellProps) {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      <aside className={`sidebar ${mobileSidebarOpen ? 'sidebar--open-mobile' : ''}`}>
         <div className="sidebar__brand">
           <BrandMark size="medium" />
           <div>
@@ -134,8 +135,19 @@ export function DashboardShell({ onLogout }: DashboardShellProps) {
         </div>
       </aside>
 
+      {mobileSidebarOpen ? <div className="mobile-sidebar__overlay" onClick={() => setMobileSidebarOpen(false)} /> : null}
+
       <main className="workspace">
         <header className="workspace__header">
+          <button
+            className="mobile-sidebar-toggle"
+            aria-expanded={mobileSidebarOpen}
+            aria-label={mobileSidebarOpen ? 'Fechar menu' : 'Abrir menu'}
+            onClick={() => setMobileSidebarOpen((s) => !s)}
+            type="button"
+          >
+            ☰
+          </button>
           <div>
             <p className="eyebrow">{currentSectionLabel}</p>
             <h1>BESTv</h1>
