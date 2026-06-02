@@ -4,6 +4,14 @@ import './styles/global.css';
 import App from './App';
 import { AppStoreProvider } from './context/AppStore';
 
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Registro opcional: a interface continua funcionando sem PWA instalada.
+    });
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppStoreProvider>

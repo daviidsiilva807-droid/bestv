@@ -95,6 +95,19 @@ export function DashboardShell({ onLogout }: DashboardShellProps) {
           </div>
         </header>
 
+        <nav className="workspace__mobile-nav" aria-label="Atalhos móveis do aplicativo">
+          {sections.map((item) => (
+            <button
+              key={item.id}
+              className={`mobile-nav-item ${section === item.id ? 'mobile-nav-item--active' : ''}`}
+              onClick={() => setSection(item.id)}
+              type="button"
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
         <section className="hero-card">
           <div className="hero-card__logo">
             <BrandMark size="large" />
