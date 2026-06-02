@@ -996,9 +996,22 @@ h4,
     top: 12px;
     z-index: 5;
     gap: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 12px;
   }
 
   .sidebar__nav {
+    display: none;
+  }
+
+  /* Compacta a sidebar no mobile: mostra só o BrandMark como aba */
+  .sidebar__brand > div {
+    display: none;
+  }
+
+  .sidebar__footer {
     display: none;
   }
 
