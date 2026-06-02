@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAppStore } from '../context/AppStore';
 import { formatDate, formatMoney, monthKey } from '../utils/format';
 import { MetricCard } from './MetricCard';
@@ -22,6 +22,22 @@ export function BillingSection() {
     () => plans.find((plan) => plan.name === selectedClient?.planName) ?? plans[0],
     [plans, selectedClient],
   );
+
+  useEffect(() => {
+    if (!clients.length) {
+      setSelectedClientId('');
+      setForm((current) => ({ ...current, amount: 0 }));
+      return;
+    }
+
+    const clientStillExists = clients.some((client) => client.id === selectedClientId);
+
+    if (!clientStillExists) {
+      const firstClient = clients[0];
+      setSelectedClientId(firstClient.id);
+      setForm((current) => ({ ...current, amount: firstClient.planValue }));
+    }
+  }, [clients, selectedClientId]);
 
   const currentMonth = monthKey(new Date());
   const methodCounter = payments.reduce<Record<string, number>>((accumulator, payment) => {

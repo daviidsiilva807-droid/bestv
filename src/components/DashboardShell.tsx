@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BrandMark } from './BrandMark';
 import { HomeSection } from './HomeSection';
 import { ClientsNotebookSection } from './ClientsNotebookSection';
@@ -23,14 +23,79 @@ const sections: Array<{ id: SectionId; label: string; description: string }> = [
   { id: 'datas', label: 'Datas importantes', description: 'Promoções e marketing' },
 ];
 
+function readSectionFromHash(hash: string): SectionId {
+  const nextSection = hash.replace(/^#\/?/, '');
+
+  return sections.some((item) => item.id === nextSection) ? (nextSection as SectionId) : 'dashboard';
+}
+
+function buildSectionHash(sectionId: SectionId): string {
+  return `#/${sectionId}`;
+}
+
 export function DashboardShell({ onLogout }: DashboardShellProps) {
-  const [section, setSection] = useState<SectionId>('dashboard');
+  const [section, setSection] = useState<SectionId>(() => {
+    if (typeof window === 'undefined') {
+      return 'dashboard';
+    }
+
+    return readSectionFromHash(window.location.hash);
+  });
   const { metrics, username } = useAppStore();
 
   const currentSectionLabel = useMemo(
     () => sections.find((item) => item.id === section)?.label ?? 'Visão geral',
     [section],
   );
+
+  useEffect(() => {
+    const syncSection = () => {
+      setSection(readSectionFromHash(window.location.hash));
+    };
+
+    syncSection();
+    window.addEventListener('hashchange', syncSection);
+
+    return () => window.removeEventListener('hashchange', syncSection);
+  }, []);
+
+  useEffect(() => {
+    const nextHash = buildSectionHash(section);
+
+    if (window.location.hash !== nextHash) {
+      window.history.replaceState(null, '', nextHash);
+    }
+
+    document.title = `BESTv - ${currentSectionLabel}`;
+  }, [currentSectionLabel, section]);
+
+  const navigateToSection = (nextSection: SectionId) => {
+    window.location.hash = buildSectionHash(nextSection);
+  };
+
+  const activeSection = (() => {
+    if (section === 'dashboard') {
+      return <HomeSection onNavigate={navigateToSection} />;
+    }
+
+    if (section === 'caderno') {
+      return <ClientsNotebookSection />;
+    }
+
+    if (section === 'cadastro') {
+      return <ClientRegistrationSection />;
+    }
+
+    if (section === 'faturamento') {
+      return <BillingSection />;
+    }
+
+    if (section === 'planos') {
+      return <PlansSection />;
+    }
+
+    return <DatesMarketingSection />;
+  })();
 
   return (
     <div className="app-shell">
@@ -48,7 +113,7 @@ export function DashboardShell({ onLogout }: DashboardShellProps) {
             <button
               key={item.id}
               className={`nav-item ${section === item.id ? 'nav-item--active' : ''}`}
-              onClick={() => setSection(item.id)}
+              onClick={() => navigateToSection(item.id)}
               type="button"
             >
               <span>{item.label}</span>
@@ -100,7 +165,7 @@ export function DashboardShell({ onLogout }: DashboardShellProps) {
             <button
               key={item.id}
               className={`mobile-nav-item ${section === item.id ? 'mobile-nav-item--active' : ''}`}
-              onClick={() => setSection(item.id)}
+              onClick={() => navigateToSection(item.id)}
               type="button"
             >
               {item.label}
@@ -108,36 +173,43 @@ export function DashboardShell({ onLogout }: DashboardShellProps) {
           ))}
         </nav>
 
-        <section className="hero-card">
-          <div className="hero-card__logo">
-            <BrandMark size="large" />
-          </div>
-
-          <div className="hero-card__content">
-            <p className="eyebrow">Painel central</p>
-            <h2>Controle operacional com a mesma paleta da referência</h2>
-            <p>
-              A estrutura abaixo atualiza clientes, valores, notificações, promoções e faturamento a partir de uma
-              única fonte de dados.
-            </p>
-
-            <div className="hero-card__chips">
-              {sections.map((item) => (
-                <button key={item.id} className="hero-chip" onClick={() => setSection(item.id)} type="button">
-                  {item.label}
-                </button>
-              ))}
+        {section === 'dashboard' ? (
+          <section className="hero-card">
+            <div className="hero-card__logo">
+              <BrandMark size="large" />
             </div>
-          </div>
-        </section>
 
-        <section className="content-panel">
-          {section === 'dashboard' ? <HomeSection onNavigate={setSection} /> : null}
-          {section === 'caderno' ? <ClientsNotebookSection /> : null}
-          {section === 'cadastro' ? <ClientRegistrationSection /> : null}
-          {section === 'faturamento' ? <BillingSection /> : null}
-          {section === 'planos' ? <PlansSection /> : null}
-          {section === 'datas' ? <DatesMarketingSection /> : null}
+            <div className="hero-card__content">
+              <p className="eyebrow">Painel central</p>
+              <h2>Controle operacional com a mesma paleta da referência</h2>
+              <p>
+                A estrutura abaixo atualiza clientes, valores, notificações, promoções e faturamento a partir de uma
+                única fonte de dados.
+              </p>
+
+              <div className="hero-card__chips">
+                {sections.map((item) => (
+                  <button key={item.id} className="hero-chip" onClick={() => navigateToSection(item.id)} type="button">
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className="panel-card panel-card--soft workspace-intro">
+            <div className="panel-card__header">
+              <div>
+                <p className="eyebrow">{currentSectionLabel}</p>
+                <h3>Espaço dedicado</h3>
+              </div>
+            </div>
+            <p className="helper-text">Esta tela mostra apenas o conteúdo da seção selecionada.</p>
+          </section>
+        )}
+
+        <section className="content-panel workspace-view" key={section}>
+          {activeSection}
         </section>
       </main>
     </div>

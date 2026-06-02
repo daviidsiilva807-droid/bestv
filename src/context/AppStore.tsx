@@ -36,6 +36,7 @@ interface AppStoreValue {
   logout: () => void;
   addClient: (input: ClientInput) => void;
   updateClient: (clientId: string, patch: Partial<Client>) => void;
+  deleteClient: (clientId: string) => void;
   toggleReminder: (clientId: string) => void;
   registerPayment: (input: PaymentInput) => void;
   addPromotion: (input: PromotionInput) => void;
@@ -272,6 +273,23 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     addActivity('Cliente atualizado', 'As informações do cadastro foram sincronizadas.', 'info');
   };
 
+  const deleteClient = (clientId: string) => {
+    const client = snapshot.clients.find((item) => item.id === clientId);
+
+    if (!client) {
+      return;
+    }
+
+    setSnapshot((current) => ({
+      ...current,
+      clients: current.clients.filter((item) => item.id !== clientId),
+      payments: current.payments.filter((payment) => payment.clientId !== clientId),
+      promotions: current.promotions.filter((promotion) => promotion.clientId !== clientId),
+    }));
+
+    addActivity('Cliente excluído', `${client.name} e os lançamentos vinculados foram removidos.`, 'warning');
+  };
+
   const toggleReminder = (clientId: string) => {
     const client = snapshot.clients.find((item) => item.id === clientId);
 
@@ -462,6 +480,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       logout,
       addClient,
       updateClient,
+      deleteClient,
       toggleReminder,
       registerPayment,
       addPromotion,

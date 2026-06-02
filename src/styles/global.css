@@ -232,6 +232,11 @@ h4,
   color: var(--ink);
 }
 
+.secondary-button--danger {
+  background: rgba(198, 43, 43, 0.1);
+  color: #ab2626;
+}
+
 .primary-button:hover,
 .secondary-button:hover,
 .hero-chip:hover,
@@ -650,6 +655,13 @@ h4,
 .client-card__actions {
   display: flex;
   justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.workspace-intro {
+  display: grid;
+  gap: 10px;
 }
 
 .status-badge {

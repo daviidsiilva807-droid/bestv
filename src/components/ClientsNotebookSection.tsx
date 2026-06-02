@@ -3,7 +3,7 @@ import { useAppStore } from '../context/AppStore';
 import { formatDate, formatMoney } from '../utils/format';
 
 export function ClientsNotebookSection() {
-  const { clientLedgers, clients, toggleReminder } = useAppStore();
+  const { clientLedgers, clients, deleteClient, toggleReminder } = useAppStore();
 
   const clientMap = useMemo(
     () => new Map(clients.map((client) => [client.id, client])),
@@ -21,7 +21,7 @@ export function ClientsNotebookSection() {
         </div>
 
         <div className="client-grid">
-          {clientLedgers.map((ledger) => {
+          {clientLedgers.length ? clientLedgers.map((ledger) => {
             const client = clientMap.get(ledger.clientId);
 
             if (!client) {
@@ -74,10 +74,22 @@ export function ClientsNotebookSection() {
                   <button className="secondary-button" onClick={() => toggleReminder(client.id)} type="button">
                     {client.reminderEnabled ? 'Desativar lembrete' : 'Ativar lembrete'}
                   </button>
+
+                  <button
+                    className="secondary-button secondary-button--danger"
+                    onClick={() => {
+                      if (window.confirm(`Excluir ${client.name}? Os dados vinculados também serão removidos.`)) {
+                        deleteClient(client.id);
+                      }
+                    }}
+                    type="button"
+                  >
+                    Excluir cliente
+                  </button>
                 </div>
               </article>
             );
-          })}
+          }) : <p className="empty-state">Nenhum cliente cadastrado.</p>}
         </div>
       </div>
     </div>
