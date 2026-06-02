@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAppStore } from '../context/AppStore';
-import { formatDate, formatMoney, monthKey } from '../utils/format';
+import { formatDate, formatMoney, formatMonthLabel, monthKey } from '../utils/format';
 import { MetricCard } from './MetricCard';
 
 export function BillingSection() {
   const { clients, clientLedgers, metrics, payments, plans, registerPayment } = useAppStore();
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id ?? '');
+  const [selectedMonth, setSelectedMonth] = useState(() => monthKey(new Date()));
   const [form, setForm] = useState({
     amount: clients[0]?.planValue ?? 0,
     method: 'PIX' as const,
@@ -40,10 +41,47 @@ export function BillingSection() {
   }, [clients, selectedClientId]);
 
   const currentMonth = monthKey(new Date());
-  const methodCounter = payments.reduce<Record<string, number>>((accumulator, payment) => {
+  const monthlyBilling = useMemo(() => {
+    const grouped = payments.reduce<Record<string, { total: number; count: number }>>((accumulator, payment) => {
+      const key = monthKey(payment.date);
+      const current = accumulator[key] ?? { total: 0, count: 0 };
+
+      accumulator[key] = {
+        total: current.total + payment.amount,
+        count: current.count + 1,
+      };
+
+      return accumulator;
+    }, {});
+
+    return Object.entries(grouped)
+      .map(([month, summary]) => ({ month, ...summary }))
+      .sort((first, second) => second.month.localeCompare(first.month));
+  }, [payments]);
+
+  const selectedMonthPayments = useMemo(
+    () => payments.filter((payment) => monthKey(payment.date) === selectedMonth),
+    [payments, selectedMonth],
+  );
+
+  const selectedMonthTotal = selectedMonthPayments.reduce((accumulator, payment) => accumulator + payment.amount, 0);
+  const methodCounter = selectedMonthPayments.reduce<Record<string, number>>((accumulator, payment) => {
     accumulator[payment.method] = (accumulator[payment.method] ?? 0) + 1;
     return accumulator;
   }, {});
+
+  useEffect(() => {
+    if (!monthlyBilling.length) {
+      setSelectedMonth(currentMonth);
+      return;
+    }
+
+    const monthStillExists = monthlyBilling.some((entry) => entry.month === selectedMonth);
+
+    if (!monthStillExists) {
+      setSelectedMonth(monthlyBilling[0].month);
+    }
+  }, [currentMonth, monthlyBilling, selectedMonth]);
 
   const handleClientChange = (clientId: string) => {
     setSelectedClientId(clientId);
@@ -85,6 +123,58 @@ export function BillingSection() {
         <MetricCard label="Investimento total" value={formatMoney(metrics.totalInvestment)} note="Custos por cliente" />
         <MetricCard label="Média por plano" value={formatMoney(metrics.averagePlanValue)} note="Valor médio do ticket" />
       </div>
+
+      <article className="panel-card panel-card--soft">
+        <div className="panel-card__header">
+          <div>
+            <p className="eyebrow">Faturamento por mês</p>
+            <h3>Botões com valores consolidados</h3>
+          </div>
+          <div className="billing-month__selected">
+            <span>Mês ativo</span>
+            <strong>{formatMonthLabel(selectedMonth)}</strong>
+          </div>
+        </div>
+
+        <div className="billing-month__grid" role="list" aria-label="Resumo mensal de faturamento">
+          {monthlyBilling.map((item) => (
+            <button
+              key={item.month}
+              className={`billing-month__button ${selectedMonth === item.month ? 'billing-month__button--active' : ''}`}
+              type="button"
+              onClick={() => setSelectedMonth(item.month)}
+            >
+              <span>{formatMonthLabel(item.month)}</span>
+              <strong>{formatMoney(item.total)}</strong>
+              <small>{item.count} lançamentos</small>
+            </button>
+          ))}
+        </div>
+
+        <div className="summary-list summary-list--spaced">
+          <div className="summary-row">
+            <div>
+              <strong>{formatMonthLabel(selectedMonth)}</strong>
+              <span>Receita total do mês</span>
+            </div>
+            <div className="summary-row__numbers">
+              <strong>{formatMoney(selectedMonthTotal)}</strong>
+              <span>{selectedMonthPayments.length} pagamentos</span>
+            </div>
+          </div>
+
+          <div className="summary-row">
+            <div>
+              <strong>Valor médio por lançamento</strong>
+              <span>Baseado nos pagamentos do mês ativo</span>
+            </div>
+            <div className="summary-row__numbers">
+              <strong>{formatMoney(selectedMonthPayments.length ? selectedMonthTotal / selectedMonthPayments.length : 0)}</strong>
+              <span>Ticket mensal</span>
+            </div>
+          </div>
+        </div>
+      </article>
 
       <div className="dual-grid">
         <article className="panel-card">

@@ -9,6 +9,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('admin');
   const [error, setError] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -24,46 +25,56 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   };
 
   return (
-    <main className="auth-screen">
-      <div className="auth-screen__glow auth-screen__glow--left" />
-      <div className="auth-screen__glow auth-screen__glow--right" />
-      <section className="auth-card">
-        <div className="auth-card__brand">
-          <BrandMark size="large" />
-          <div>
-            <p className="eyebrow">BESTv</p>
-            <h1>Monitoramento IPTV</h1>
-            <p>Entre com a conta administrativa para acessar clientes, faturamento e promoções.</p>
+    <main className="auth-shell">
+      <div className="auth-shell__glow auth-shell__glow--left" />
+      <div className="auth-shell__glow auth-shell__glow--right" />
+
+      <section className={`auth-dock ${isExpanded ? 'auth-dock--expanded' : 'auth-dock--collapsed'}`}>
+        <button className="auth-dock__tab" type="button" onClick={() => setIsExpanded((current) => !current)}>
+          <span className="auth-dock__tab-label">Login</span>
+          <strong>{isExpanded ? 'Minimizar' : 'Abrir acesso'}</strong>
+        </button>
+
+        {isExpanded ? (
+          <div className="auth-card">
+            <div className="auth-card__brand">
+              <BrandMark size="large" />
+              <div>
+                <p className="eyebrow">BESTv</p>
+                <h1>Monitoramento IPTV</h1>
+                <p>Entre com a conta administrativa para acessar clientes, faturamento e promoções.</p>
+              </div>
+            </div>
+
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <label className="field">
+                <span>Usuário</span>
+                <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="admin" />
+              </label>
+
+              <label className="field">
+                <span>Senha</span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="admin"
+                />
+              </label>
+
+              {error ? <p className="field-error">{error}</p> : null}
+
+              <button className="primary-button primary-button--full" type="submit">
+                Entrar no painel
+              </button>
+            </form>
+
+            <div className="auth-card__hint">
+              <span>Credenciais padrão</span>
+              <strong>admin / admin</strong>
+            </div>
           </div>
-        </div>
-
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label className="field">
-            <span>Usuário</span>
-            <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="admin" />
-          </label>
-
-          <label className="field">
-            <span>Senha</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="admin"
-            />
-          </label>
-
-          {error ? <p className="field-error">{error}</p> : null}
-
-          <button className="primary-button primary-button--full" type="submit">
-            Entrar no painel
-          </button>
-        </form>
-
-        <div className="auth-card__hint">
-          <span>Credenciais padrão</span>
-          <strong>admin / admin</strong>
-        </div>
+        ) : null}
       </section>
     </main>
   );
